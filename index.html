@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Premium Movies and webseries</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: #f8f9fa;
+    }
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    .search-container {
+      padding: 1rem;
+      text-align: center;
+    }
+    .search-container input {
+      width: 90%;
+      max-width: 500px;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+    }
+    .card h3 {
+      padding: 0.75rem 1rem 0;
+      margin: 0;
+      color: #2c3e50;
+    }
+    .card p {
+      padding: 0 1rem 1rem;
+      color: #555;
+    }
+    .card a {
+      display: block;
+      margin: 0 1rem 1rem;
+      padding: 0.5rem;
+      text-align: center;
+      background: #3498db;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+    .card a:hover {
+      background: #2980b9;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Premium Movies</h1>
+  </header>
+
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search websites...">
+  </div>
+
+  <div class="container" id="siteList"></div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+  apiKey: "AIzaSyCgswS8AZObwKQjxZooWWJHf4b1m1rvorA",
+  authDomain: "t2upload.firebaseapp.com",
+  databaseURL: "https://t2upload-default-rtdb.firebaseio.com",
+  projectId: "t2upload",
+  storageBucket: "t2upload.appspot.com",
+  messagingSenderId: "1000887477924",
+  appId: "1:1000887477924:web:522232d054b9b7ce2ea831",
+  measurementId: "G-75ZZL6BWVH"
+};
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const siteList = document.getElementById("siteList");
+    const searchInput = document.getElementById("searchInput");
+
+    function renderSite(data) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const img = document.createElement("img");
+      img.src = data.imageURL || "https://via.placeholder.com/400x180?text=No+Image";
+      img.onerror = () => img.src = 'https://via.placeholder.com/400x180?text=No+Image';
+
+      const title = document.createElement("h3");
+      title.textContent = data.name;
+
+      const desc = document.createElement("p");
+      desc.textContent = data.description;
+
+      const link = document.createElement("a");
+      link.href = data.url;
+      link.target = "_blank";
+      link.textContent = "View Now";
+
+      card.appendChild(img);
+      card.appendChild(title);
+      card.appendChild(desc);
+      card.appendChild(link);
+
+      return card;
+    }
+
+    function loadSites() {
+      db.ref("websites2").once("value", snapshot => {
+        const websites = [];
+        snapshot.forEach(child => {
+          websites.push(child.val());
+        });
+
+        // Sort by timestamp descending (latest first)
+        websites.sort((a, b) => b.timestamp - a.timestamp);
+
+        // Optional: Shuffle for random view every time
+        // websites.sort(() => Math.random() - 0.5);
+
+        displaySites(websites);
+      });
+    }
+
+    function displaySites(sites) {
+      siteList.innerHTML = "";
+      const query = searchInput.value.toLowerCase();
+      sites.filter(site => site.name.toLowerCase().includes(query) || site.description.toLowerCase().includes(query))
+           .forEach(site => {
+             siteList.appendChild(renderSite(site));
+           });
+    }
+
+    searchInput.addEventListener("input", loadSites);
+    window.addEventListener("load", loadSites);
+  </script>
+
+</body>
+  </html>
